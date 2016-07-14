@@ -1,0 +1,84 @@
+#!/bin/bash
+
+PROJECT_ROOT=~/Projects
+
+function chrome {
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" $1 &
+}
+
+function httpserver {
+  python -m SimpleHTTPServer &
+  open http://localhost:8000
+  fg
+}
+
+function mkenv {
+  if [ ! -n "$project_name" ]; then
+    project_name=$(basename `pwd`)
+  else
+    project_name=$1
+  fi
+
+  project_path=$PROJECT_ROOT/$project_name
+  
+  autoenv_filename=$project_path/.env
+  environment_filename=$project_path/environment.yml
+  
+  if [ -d $project_path ]; then
+    echo "project $project_name exists"
+  else
+    echo "creating project $project_name at $project_path"
+    mkdir $project_path
+  fi
+  
+  if [ ! -f $environment_filename ]; then
+    echo "creating $environment_filename"
+    echo "name: $project_name"   > $environment_filename
+    echo "dependencies:"        >> $environment_filename
+    echo "- pip"                >> $environment_filename
+    echo "- python"             >> $environment_filename
+    echo "- scipy"              >> $environment_filename
+    echo "- numpy"              >> $environment_filename
+    echo "- pandas"             >> $environment_filename
+    echo "- matplotlib"         >> $environment_filename
+    echo "- jupyter"            >> $environment_filename
+    echo "  $environment_filename created"
+  else
+    echo "$environment_filename already exists"
+  fi
+
+  conda env create -f $environment_filename
+  if [ ! -f $autoenv_filename ]; then
+    echo "creating $autoenv_filename"
+    printf "source activate $project_name\n" > $autoenv_filename
+    echo "  $autoenv_filename created"
+  else
+    echo "$autoenv_filename already exists"
+  fi
+  cd $project_path
+}
+
+function rmenv {
+  project_name=$1
+  project_path=$PROJECT_ROOT/$project_name
+  
+  if [ ! -n "$project_name" ]; then
+    echo "missing project name"
+  else
+    if [ -d $project_path ]; then
+      echo "removing $project_name"
+      rm -rv $project_path
+      rm -rv ~/usr/local/miniconda2/envs/$project_name
+    else
+      echo "project $project_name doesn't exist"
+    fi
+  fi
+}
+
+jhome () {
+  export JAVA_HOME=`/usr/libexec/java_home $@`
+  echo "JAVA_HOME:" $JAVA_HOME
+  echo "java -version:"
+  java -version
+}
+
