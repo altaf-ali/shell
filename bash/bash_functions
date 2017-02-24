@@ -12,7 +12,7 @@ function httpserver {
   fg
 }
 
-function mkenv {
+function mkenv_OLD {
   if [ ! -n "$project_name" ]; then
     project_name=$(basename `pwd`)
   else
@@ -58,7 +58,7 @@ function mkenv {
   cd $project_path
 }
 
-function rmenv {
+function rmenv_OLD {
   project_name=$1
   project_path=$PROJECT_ROOT/$project_name
   
@@ -81,4 +81,38 @@ jhome () {
   echo "java -version:"
   java -version
 }
+
+function get_project_name {
+  project_name=$1
+
+  if [ ! -n "$project_name" ]; then
+    project_name=$(basename `pwd`)
+  fi
+
+  echo "$project_name"
+}
+
+function lsenv {
+  conda info --envs
+}
+
+function chenv {
+  project_name=$(get_project_name $1)
+  echo "switching to environmnt '$project_name'"
+  source activate $project_name
+}
+
+function mkenv {
+  project_name=$(get_project_name $1)
+  echo "creating environmnt '$project_name'"
+  conda create --name $project_name numpy
+}
+
+function rmenv {
+  project_name=$(get_project_name $1)
+  echo "removing environmnt '$project_name'"
+  conda remove --name $project_name --all
+}
+
+
 
